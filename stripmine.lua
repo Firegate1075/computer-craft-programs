@@ -56,6 +56,7 @@ function placeChestAndDump()
       end
     end
   end
+  turtle.select(1)
   turtle.turnRight()
 end
 
