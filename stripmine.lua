@@ -1,6 +1,7 @@
 ITEM_TORCH = "minecraft:torch"
-ITEM_COBBLE = "minecraft:cobblestone"
-ITEM_CHEST = "minecraft:chest"
+TAG_COBBLE = "c:cobblestones"
+TAG_CHEST = "c:chests/wooden"
+TAG_ORES = "c:ores"
 
 local blocks_since_torch = 0
 
@@ -32,7 +33,7 @@ function placeTorch()
 end
 
 function placeChestAndDump()
-  slot = findItem(ITEM_CHEST)
+  slot = findItemWithTag(TAG_CHEST)
   if not slot then
     return
   end
@@ -48,11 +49,15 @@ function placeChestAndDump()
   turtle.select(slot)
   success = turtle.place()
   if success then
+    cobble_grabbed = false
     for slot = 1, 16 do
-      info = turtle.getItemDetail(slot)
-      if info and not (info.name == ITEM_TORCH or info.name == ITEM_COBBLE or info.name == ITEM_CHEST) then
+      info = turtle.getItemDetail(slot, true)
+      if info and not (info.name == ITEM_TORCH or (info.tags[TAG_COBBLE] and not cobble_grabbed) or info.tags[TAG_CHEST]) then
         turtle.select(slot)
         turtle.drop()
+      end
+      if info and info.tags[TAG_COBBLE] then
+        cobble_grabbed = true
       end
     end
   end
@@ -63,7 +68,7 @@ end
 function step()
   forward()
   digUp()
-  slot = findItem(ITEM_COBBLE)
+  slot = findItemWithTag(TAG_COBBLE)
   if slot then
     turtle.select(slot)
     turtle.placeDown()
@@ -84,6 +89,16 @@ function findItem(item_string)
   for slot = 1, 16 do
     info = turtle.getItemDetail(slot)
     if info and info.name == item_string then
+      return slot
+    end
+  end
+  return nil
+end
+
+function findItemWithTag(tag_string)
+  for slot = 1, 16 do
+    info = turtle.getItemDetail(slot, true)
+    if info and info.tags[tag_string] then
       return slot
     end
   end
