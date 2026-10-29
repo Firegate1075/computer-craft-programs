@@ -102,6 +102,7 @@ local function handle_event(event_name, ...)
     if packet["operation"] == OPERATION_REPLY then
       -- process the reply
       update_arp_table(packet["sender_ip"], packet["sender_mac"], interface)
+      os.queueEvent(EVENT_ID_ARP_REPLY, { ip = packet["sender_ip"], mac = packet["sender_mac"], interface = interface })
     elseif packet["operation"] == OPERATION_REQUEST then
       -- process the request
       if packet["target_mac"] == os.getComputerID() then
