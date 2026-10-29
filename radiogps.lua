@@ -2,7 +2,8 @@
 --
 -- SPDX-License-Identifier: LicenseRef-CCPL
 
-json = require("json")
+local json = require("json")
+local radiogps = require("radio_gps")
 
 local function printUsage()
   local programName = arg[0] or fs.getName(shell.getRunningProgram())
