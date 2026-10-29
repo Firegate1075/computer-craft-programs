@@ -123,8 +123,11 @@ function locate(_nTimeout, _bDebug)
         -- Received the correct message from the correct modem: use it to determine position
         local decoded_message = json.decode(message)
         if decoded_message and type(decoded_message) == "table" and #decoded_message == 3 and tonumber(decoded_message[1]) and tonumber(decoded_message[2]) and tonumber(decoded_message[3]) then
-          local tFix = { vPosition = vector.new(decoded_message[1], decoded_message[2], decoded_message[3]), nDistance =
-          distance }
+          local tFix = {
+            vPosition = vector.new(decoded_message[1], decoded_message[2], decoded_message[3]),
+            nDistance =
+                distance
+          }
           if _bDebug then
             print(tFix.nDistance .. " metres from " .. tostring(tFix.vPosition))
           end
@@ -189,3 +192,5 @@ function locate(_nTimeout, _bDebug)
     return nil
   end
 end
+
+return { FREQUENCY_GPS = FREQUENCY_GPS, locate = locate }
