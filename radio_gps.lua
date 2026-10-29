@@ -109,7 +109,7 @@ function locate(_nTimeout, _bDebug)
   radio.setFrequency(FREQUENCY_GPS)
 
   -- Send a ping to listening GPS hosts
-  radio.transmit("PING")
+  radio.broadcast("PING")
 
   -- Wait for the responses
   local tFixes = {}
