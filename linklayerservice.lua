@@ -11,14 +11,12 @@ FILE_LOG = "/var/log/link.log"
 
 CRC_POLYNOMIAL = 0x04C11DB7
 
-local json = require("json")
-
 -- maps "if-name": "peripheral-name"
 local config_interfaces = {}
 
 local function process_config()
   local file_interface = fs.open(FILE_INTERFACES, "r")
-  config_interfaces = json.decode(file_interface.readAll())
+  config_interfaces = textutils.unserializeJSON(file_interface.readAll())
   file_interface.close()
 end
 
@@ -30,7 +28,7 @@ end
 
 local function log(message)
   local log_file = fs.open(FILE_LOG, "a")
-  log_file.writeLine(os.date("%F %T") .. message)
+  log_file.writeLine(os.date("%F %T") .. " - " .. message)
   log_file.close()
 end
 
@@ -57,13 +55,13 @@ local function calculate_packet_crc(packet)
     dst_address = packet["dst_address"],
     payload = packet["payload"],
   }
-  return calculate_CRC(CRC_POLYNOMIAL, textutils.serialize(crc_packet))
+  return calculate_CRC(CRC_POLYNOMIAL, crc_packet)
 end
 
 local function handle_event(event_name, ...)
   if event_name == EVENT_ID_MODEM then
     -- handle received modem message event
-    local peripheral_name, src_address, dst_address, message, distance = ...
+    local peripheral_name, dst_address, src_address, message, distance = ...
 
     -- find interface name for the hardware device
     local src_interface = nil
@@ -125,7 +123,7 @@ local function handle_event(event_name, ...)
       return
     end
 
-    local link_event_data = { interface = src, packet = packet }
+    local link_event_data = { interface = src_interface, packet = packet }
     os.queueEvent(EVENT_ID_RX, link_event_data)
   elseif event_name == EVENT_ID_TX then
     -- handle transmit request
@@ -134,7 +132,7 @@ local function handle_event(event_name, ...)
     local packet = link_event_data["packet"]
 
     local device_name = config_interfaces[interface]
-    local dev = peripheral.find(device_name)
+    local dev = peripheral.wrap(device_name)
     if not dev then
       log("error: peripheral " .. device_name .. " not found")
       return
@@ -156,7 +154,7 @@ local function handle_event(event_name, ...)
     }
 
     -- calculate checksum
-    packet["checksum"] = calculate_packet_crc(packet)
+    message["checksum"] = calculate_packet_crc(packet)
 
     if peripheral.hasType(dev, PERIPHERAL_ID_MODEM) then
       dev.transmit(packet["dst_address"], packet["src_address"], textutils.serialiseJSON(message))
@@ -168,7 +166,7 @@ local function handle_event(event_name, ...)
       dev.broadcast(textutils.serializeJSON(message))
     else
       log("error: device " ..
-      device_name .. " for interface " .. interface .. " has unsupported type " .. peripheral.getType(dev))
+        device_name .. " for interface " .. interface .. " has unsupported type " .. peripheral.getType(dev))
       return
     end
   end
