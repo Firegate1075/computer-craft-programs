@@ -50,12 +50,18 @@ local function calculate_CRC(gen_poly, data)
 end
 
 local function calculate_packet_crc(packet)
-  crc_packet = {
+  local crc_packet = {
     src_address = packet["src_address"],
     dst_address = packet["dst_address"],
     payload = packet["payload"],
   }
-  return calculate_CRC(CRC_POLYNOMIAL, crc_packet)
+  local data_string = textutils.serialize(crc_packet)
+  local data = {}
+  for index = 1, #data_string do
+    data[index] = data_string:byte(index)
+  end
+
+  return calculate_CRC(CRC_POLYNOMIAL, data)
 end
 
 local function handle_event(event_name, ...)
