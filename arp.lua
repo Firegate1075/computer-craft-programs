@@ -8,6 +8,11 @@ local arp_table = {}
 
 local function fetch_arp_table()
   local arp_file = fs.open(FILE_ARPTABLE, "r")
+
+  if not arp_file then
+    return
+  end
+
   local arp_table = textutils.unserializeJSON(arp_file.readAll())
   arp_file.close()
 end
