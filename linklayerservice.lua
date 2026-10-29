@@ -69,6 +69,11 @@ local function handle_event(event_name, ...)
     -- handle received modem message event
     local peripheral_name, dst_address, src_address, message, distance = ...
 
+    if dst_address ~= os.getComputerID() and dst_address ~= 0xFFFF then
+      -- packet is not meant for us, drop it
+      return
+    end
+
     -- find interface name for the hardware device
     local src_interface = nil
     for interface, device in pairs(config_interfaces) do
@@ -124,6 +129,10 @@ local function handle_event(event_name, ...)
       payload = deserialized_message["payload"],
       checksum = deserialized_message["checksum"]
     }
+    if packet["dst_address"] ~= os.getComputerID() and packet["dst_address"] ~= 0xFFFF then
+      -- packet is not meant for us, drop it
+      return
+    end
     if packet["checksum"] ~= calculate_packet_crc(packet) then
       log("error: packet received with incorrect checksum")
       return
@@ -153,6 +162,10 @@ local function handle_event(event_name, ...)
       return
     end
 
+    if packet["src_address"] ~= os.getComputerID() then
+      log("error: dropping packet with foreign source address " .. packet["src_address"])
+      return
+    end
 
     message = {
       payload = packet["payload"],
