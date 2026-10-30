@@ -67,7 +67,7 @@ local function transmit_arp_request(requested_ip, interface)
     dst_address = 0xFFFF,
     payload = {
       protocol = PROTOCOL_IDENTIFIER,
-      operation = OPERATION_REPLY,
+      operation = OPERATION_REQUEST,
       sender_ip = IP_ADDRESS,
       sender_mac = os.getComputerID(),
       target_ip = requested_ip,
@@ -105,7 +105,7 @@ local function handle_event(event_name, ...)
       os.queueEvent(EVENT_ID_ARP_REPLY, { ip = packet["sender_ip"], mac = packet["sender_mac"], interface = interface })
     elseif packet["operation"] == OPERATION_REQUEST then
       -- process the request
-      if packet["target_mac"] == os.getComputerID() then
+      if packet["target_ip"] == IP_ADDRESS then
         update_arp_table(packet["sender_ip"], packet["sender_mac"], interface)
         transmit_arp_reply(packet["sender_ip"], packet["sender_mac"], interface)
       elseif DO_ARP_SNOOPING then
