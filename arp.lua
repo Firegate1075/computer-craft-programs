@@ -13,7 +13,7 @@ local function fetch_arp_table()
     return
   end
 
-  local arp_table = textutils.unserializeJSON(arp_file.readAll())
+  arp_table = textutils.unserializeJSON(arp_file.readAll()) or {}
   arp_file.close()
 end
 
@@ -25,7 +25,7 @@ local function lookup(ip_address, interface, timeout)
 
   if not arp_table[ip_address] or arp_table[ip_address]["interface"] ~= interface then
     os.queueEvent(EVENT_ID_ARP_REQUEST, { target_ip = ip_address, interface = interface })
-    local arp_timer = os.setAlarm(timeout)
+    local arp_timer = os.startTimer(timeout)
     while true do
       local event, p1 = os.pullEvent()
       if event == EVENT_ID_ARP_REPLY and p1["ip"] == ip_address and p1["interface"] == interface then
