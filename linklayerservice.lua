@@ -49,13 +49,8 @@ local function calculate_CRC(gen_poly, data)
   return remainder
 end
 
-local function calculate_packet_crc(packet)
-  local crc_packet = {
-    src_address = packet["src_address"],
-    dst_address = packet["dst_address"],
-    payload = packet["payload"],
-  }
-  local data_string = textutils.serialize(crc_packet)
+local function calculate_packet_crc(serialized_packet)
+  local data_string = serialized_packet
   local data = {}
   for index = 1, #data_string do
     data[index] = data_string:byte(index)
@@ -88,15 +83,22 @@ local function handle_event(event_name, ...)
       return
     end
 
-    deserialized_message = textutils.unserializeJSON(message)
+    local deserialized_message = textutils.unserializeJSON(message)
+    local packet = textutils.unserializeJSON(message["serialized_packet"])
+    local serialized_packet = message["serialized_packet"]
+    local checksum = deserialized_message["checksum"]
+    packet["checksum"] = checksum
 
-    local packet = {
-      src_address = src_address,
-      dst_address = dst_address,
-      payload = deserialized_message["payload"],
-      checksum = deserialized_message["checksum"]
-    }
-    if packet["checksum"] ~= calculate_packet_crc(packet) then
+    if packet["src_address"] ~= src_address then
+      log("error: dropping packet with spoofed src_address")
+      return
+    end
+    if packet["dst_address"] ~= dst_address then
+      log("error: dropping packet with spoofed dst_address")
+      return
+    end
+
+    if packet["checksum"] ~= calculate_packet_crc(serialized_packet) then
       log("error: packet received with incorrect checksum")
       return
     end
@@ -121,19 +123,17 @@ local function handle_event(event_name, ...)
       return
     end
 
-    deserialized_message = textutils.unserializeJSON(message)
+    local deserialized_message = textutils.unserializeJSON(message)
+    local packet = textutils.unserializeJSON(deserialized_message["serialized_packet"])
+    local serialized_packet = deserialized_message["serialized_packet"]
+    local checksum = deserialized_message["checksum"]
+    packet["checksum"] = checksum
 
-    local packet = {
-      src_address = deserialized_message["src_address"],
-      dst_address = deserialized_message["dst_address"],
-      payload = deserialized_message["payload"],
-      checksum = deserialized_message["checksum"]
-    }
     if packet["dst_address"] ~= os.getComputerID() and packet["dst_address"] ~= 0xFFFF then
       -- packet is not meant for us, drop it
       return
     end
-    if packet["checksum"] ~= calculate_packet_crc(packet) then
+    if packet["checksum"] ~= calculate_packet_crc(serialized_packet) then
       log("error: packet received with incorrect checksum")
       return
     end
@@ -167,21 +167,23 @@ local function handle_event(event_name, ...)
       return
     end
 
-    message = {
-      payload = packet["payload"],
+    local serialized_packet = textutils.serializeJSON({
+      src_address = packet["src_address"],
+      dst_address = packet["dst_address"],
+      payload = packet["payload"]
+    })
+
+    local message = {
+      serialized_packet = packet["payload"],
       checksum = packet["checksum"]
     }
 
     -- calculate checksum
-    message["checksum"] = calculate_packet_crc(packet)
+    message["checksum"] = calculate_packet_crc(serialized_packet)
 
     if peripheral.hasType(dev, PERIPHERAL_ID_MODEM) then
       dev.transmit(packet["dst_address"], packet["src_address"], textutils.serialiseJSON(message))
     elseif peripheral.hasType(dev, PERIPHERAL_ID_RADIO) then
-      -- radio does not have native addressing, so we add it into the layer 2 message
-      message["src_address"] = packet["src_address"]
-      message["dst_address"] = packet["dst_address"]
-
       dev.broadcast(textutils.serializeJSON(message))
     else
       log("error: device " ..
