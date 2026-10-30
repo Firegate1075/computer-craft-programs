@@ -84,8 +84,8 @@ local function handle_event(event_name, ...)
     end
 
     local deserialized_message = textutils.unserializeJSON(message)
-    local packet = textutils.unserializeJSON(message["serialized_packet"])
-    local serialized_packet = message["serialized_packet"]
+    local packet = textutils.unserializeJSON(deserialized_message["serialized_packet"])
+    local serialized_packet = deserialized_message["serialized_packet"]
     local checksum = deserialized_message["checksum"]
     packet["checksum"] = checksum
 
