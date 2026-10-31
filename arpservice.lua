@@ -36,7 +36,7 @@ local function log(message)
 end
 
 local function update_arp_table(ip_address, mac_address, interface)
-  arp_table[ip_address] = {
+  arp_table[tostring(ip_address)] = {
     mac = mac_address,
     interface = interface
   }

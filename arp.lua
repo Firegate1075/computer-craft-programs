@@ -23,7 +23,7 @@ local function lookup(ip_address, interface, timeout)
 
   fetch_arp_table()
 
-  if not arp_table[ip_address] or arp_table[ip_address]["interface"] ~= interface then
+  if not arp_table[tostring(ip_address)] or arp_table[tostring(ip_address)]["interface"] ~= interface then
     os.queueEvent(EVENT_ID_ARP_REQUEST, { target_ip = ip_address, interface = interface })
     local arp_timer = os.startTimer(timeout)
     while true do
@@ -37,7 +37,7 @@ local function lookup(ip_address, interface, timeout)
     end
   end
 
-  return arp_table[ip_address]["mac"]
+  return arp_table[tostring(ip_address)]["mac"]
 end
 
 return { lookup = lookup }
