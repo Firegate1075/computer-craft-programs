@@ -11,7 +11,7 @@ end
 local function string2ip(ip_string)
   local octet_strings = {}
   index = 1
-  for part in string.gmatch(ip_string, "%.") do -- split the string at the dots
+  for part in string.gmatch(ip_string, "[^%.]+") do -- split the string at the dots
     octet_strings[index] = part
     index = index + 1
   end
@@ -36,7 +36,7 @@ end
 local function cidr2subnet(cidr_representation)
   local parts = {}
   local index = 1
-  for part in string.gmatch(cidr_representation, "/") do
+  for part in string.gmatch(cidr_representation, "[^/]+") do
     parts[index] = part
     index = index + 1
   end
