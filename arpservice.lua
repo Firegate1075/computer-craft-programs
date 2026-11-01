@@ -11,17 +11,9 @@ OPERATION_REQUEST = "REQUEST"
 OPERATION_REPLY = "REPLY"
 
 
---TODO: move to config
-IP_ADDRESS = 10
-DO_ARP_SNOOPING = true
+local network_config = require("network_config")
 
 local arp_table = {}
-
-local function process_config()
-  local file_interface = fs.open(FILE_INTERFACES, "r")
-  config_interfaces = textutils.unserializeJSON(file_interface.readAll())
-  file_interface.close()
-end
 
 local function initialize_log()
   local log_file = fs.open(FILE_LOG, "w")
@@ -46,14 +38,25 @@ local function update_arp_table(ip_address, mac_address, interface)
 end
 
 local function transmit_arp_reply(requesting_ip, requesting_mac, interface)
+  local ip_address = network_config.ip_address(interface)
+  if not ip_address then
+    log("error: no ip address configured for interface " .. interface)
+    return
+  end
+  local mac_address = network_config.mac_address(interface)
+  if not mac_address then
+    log("error: no mac address configured for interface " .. interface)
+    return
+  end
+
   local packet = {
-    src_address = os.getComputerID(),
+    src_address = mac_address,
     dst_address = requesting_mac,
     payload = {
       protocol = PROTOCOL_IDENTIFIER,
       operation = OPERATION_REPLY,
-      sender_ip = IP_ADDRESS,
-      sender_mac = os.getComputerID(),
+      sender_ip = ip_address,
+      sender_mac = mac_address,
       target_ip = requesting_ip,
       target_mac = requesting_mac
     }
@@ -62,14 +65,25 @@ local function transmit_arp_reply(requesting_ip, requesting_mac, interface)
 end
 
 local function transmit_arp_request(requested_ip, interface)
+  local ip_address = network_config.ip_address(interface)
+  if not ip_address then
+    log("error: no ip address configured for interface " .. interface)
+    return
+  end
+  local mac_address = network_config.mac_address(interface)
+  if not mac_address then
+    log("error: no mac address configured for interface " .. interface)
+    return
+  end
+
   local packet = {
-    src_address = os.getComputerID(),
+    src_address = mac_address,
     dst_address = 0xFFFF,
     payload = {
       protocol = PROTOCOL_IDENTIFIER,
       operation = OPERATION_REQUEST,
-      sender_ip = IP_ADDRESS,
-      sender_mac = os.getComputerID(),
+      sender_ip = ip_address,
+      sender_mac = mac_address,
       target_ip = requested_ip,
     }
   }
@@ -105,10 +119,16 @@ local function handle_event(event_name, ...)
       os.queueEvent(EVENT_ID_ARP_REPLY, { ip = packet["sender_ip"], mac = packet["sender_mac"], interface = interface })
     elseif packet["operation"] == OPERATION_REQUEST then
       -- process the request
-      if packet["target_ip"] == IP_ADDRESS then
+      local ip_address = network_config.ip_address(interface)
+      if not ip_address then
+        log("error: no ip address configured for interface " .. interface)
+        return
+      end
+
+      if packet["target_ip"] == ip_address then
         update_arp_table(packet["sender_ip"], packet["sender_mac"], interface)
         transmit_arp_reply(packet["sender_ip"], packet["sender_mac"], interface)
-      elseif DO_ARP_SNOOPING then
+      elseif network_config.arp_snooping() then
         update_arp_table(packet["sender_ip"], packet["sender_mac"], interface)
       end
     end
