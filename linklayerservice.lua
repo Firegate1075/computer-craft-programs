@@ -167,7 +167,7 @@ local function handle_event(event_name, ...)
     })
 
     local message = {
-      serialized_packet = packet["payload"],
+      serialized_packet = serialized_packet,
       checksum = packet["checksum"]
     }
 
