@@ -10,7 +10,7 @@ FILE_LOG = "/var/log/link.log"
 
 CRC_POLYNOMIAL = 0x04C11DB7
 
-local network_config = requite("network_config")
+local network_config = require("network_config")
 
 local function initialize_log()
   local log_file = fs.open(FILE_LOG, "w")
