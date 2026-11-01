@@ -24,11 +24,14 @@ end
 
 local function interfaces()
   read_config_from_file()
-  return config["interfaces"]
+  return config["interfaces"] or {}
 end
 
 local function arp_snooping()
   read_config_from_file()
+  if not config["options"] then
+    return true
+  end
   return config["options"]["arp_snooping"] or true
 end
 
@@ -55,27 +58,27 @@ local function get_interface_for_device(device_name)
 end
 
 local function mac_address(interface)
-  if not config[interface] then
+  if not config["interfaces"][interface] then
     return nil
   end
 
-  return config[interface]["mac_address"]
+  return config["interfaces"][interface]["mac_address"]
 end
 
 local function device(interface)
-  if not config[interface] then
+  if not config["interfaces"][interface] then
     return nil
   end
 
-  return config[interface]["device"]
+  return config["interfaces"][interface]["device"]
 end
 
 local function ip_address(interface)
-  if not config[interface] or not config[interface]["ip_address"] then
+  if not config["interfaces"][interface] or not config["interfaces"][interface]["ip_address"] then
     return nil
   end
 
-  local interface_address, _ = ip_util.cidr2subnet(config[interface["ip_address"]])
+  local interface_address, _ = ip_util.cidr2subnet(config["interfaces"][interface]["ip_address"])
   return interface_address
 end
 
