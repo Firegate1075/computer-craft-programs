@@ -86,6 +86,24 @@ local function ip_address(interface)
   return interface_address
 end
 
+local function ip_cidr_string(interface)
+  read_config_from_file()
+  if not config["interfaces"] or not config["interfaces"][interface] then
+    return nil
+  end
+
+  return config["interfaces"][interface]["ip_address"]
+end
+
+local function mtu(interface)
+  read_config_from_file()
+  if not config["interfaces"] or not config["interfaces"][interface] then
+    return nil
+  end
+
+  return config["interfaces"][interface]["mtu"]
+end
+
 return {
   interfaces = interfaces,
   arp_snooping = arp_snooping,
@@ -93,5 +111,7 @@ return {
   get_interface_for_device = get_interface_for_device,
   mac_address = mac_address,
   ip_address = ip_address,
-  device = device
+  device = device,
+  ip_cidr_string = ip_cidr_string,
+  mtu = mtu
 }
