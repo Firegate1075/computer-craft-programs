@@ -47,6 +47,7 @@ local function generate_default_config()
 end
 
 local function get_interface_for_device(device_name)
+  read_config_from_file()
   local src_interface = nil
   for interface, interface_config in pairs(interfaces()) do
     if interface_config["device"] and device_name == interface_config["device"] then
@@ -58,7 +59,8 @@ local function get_interface_for_device(device_name)
 end
 
 local function mac_address(interface)
-  if not config["interfaces"][interface] then
+  read_config_from_file()
+  if not config["interfaces"] or not config["interfaces"][interface] then
     return nil
   end
 
@@ -66,7 +68,8 @@ local function mac_address(interface)
 end
 
 local function device(interface)
-  if not config["interfaces"][interface] then
+  read_config_from_file()
+  if not config["interfaces"] or not config["interfaces"][interface] then
     return nil
   end
 
@@ -74,7 +77,8 @@ local function device(interface)
 end
 
 local function ip_address(interface)
-  if not config["interfaces"][interface] or not config["interfaces"][interface]["ip_address"] then
+  read_config_from_file()
+  if not conifg["interfaces"] or not config["interfaces"][interface] or not config["interfaces"][interface]["ip_address"] then
     return nil
   end
 
