@@ -1,9 +1,9 @@
 -- compute the dotted decimal representation of an IPv4 address
 local function ip2string(ip_address)
-  restult = ""
-  result = result .. tostring(bit32.rshift(bit32.band(ip_address, 0xFF000000), 24))
-  result = result .. tostring(bit32.rshift(bit32.band(ip_address, 0x00FF0000), 16))
-  result = result .. tostring(bit32.rshift(bit32.band(ip_address, 0x0000FF00), 8))
+  local result = ""
+  result = result .. tostring(bit32.rshift(bit32.band(ip_address, 0xFF000000), 24)) .. "."
+  result = result .. tostring(bit32.rshift(bit32.band(ip_address, 0x00FF0000), 16)) .. "."
+  result = result .. tostring(bit32.rshift(bit32.band(ip_address, 0x0000FF00), 8)) .. "."
   result = result .. tostring(bit32.band(ip_address, 0x000000FF))
   return result
 end

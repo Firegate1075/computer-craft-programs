@@ -1,5 +1,5 @@
 local ip_util = require("ip_util")
-local network_config = require("nerwork_config")
+local network_config = require("network_config")
 local forwarding = require("forwarding")
 
 
@@ -24,7 +24,8 @@ function cli()
 
       print(index .. ": " .. interface .. ": " .. "mtu " .. network_config.mtu(interface))
       print("    link/ether " ..
-        string.format("%x", bit32.rshift(mac_address, 8)) .. ":" .. string.format("%x", bit32.band(mac_address, 0xFF)))
+        string.format("%02x", bit32.rshift(mac_address, 8)) ..
+        ":" .. string.format("%02x", bit32.band(mac_address, 0xFF)))
       print("    inet " .. network_config.ip_cidr_string(interface))
 
       index = index + 1
