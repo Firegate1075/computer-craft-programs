@@ -78,7 +78,7 @@ end
 
 local function ip_address(interface)
   read_config_from_file()
-  if not conifg["interfaces"] or not config["interfaces"][interface] or not config["interfaces"][interface]["ip_address"] then
+  if not config["interfaces"] or not config["interfaces"][interface] or not config["interfaces"][interface]["ip_address"] then
     return nil
   end
 
