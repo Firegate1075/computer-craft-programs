@@ -188,7 +188,6 @@ end
 
 local function run()
   initialize_log()
-  process_config()
   while true do
     handle_event(os.pullEvent())
   end
